@@ -1,238 +1,1102 @@
-<!DOCTYPE html><html lang="en"><head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AGITube Flow Automator — Bulk AI Image &amp; Video Generation</title>
-<meta name="description" content="A Chrome extension that automates bulk AI image and video generation in Google Flow — load a list of prompts, add reference images, and download every result, organized.">
-<style>
-  :root{
-    --bg:#101012; --bg2:#17171a; --bg3:#202024; --bg4:#2a2a30;
-    --border:#34343a; --text:#e7e8ec; --muted:#8b8b94;
-    --silver:#e7e8ec; --silver-bright:#f6f7f9; --ok:#a0c2b4;
-    --tint:rgba(231,232,236,0.08); --radius:12px;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
-  body{
-    font-family:"Segoe UI",system-ui,-apple-system,sans-serif;color:var(--text);font-size:16px;line-height:1.6;
-    background:radial-gradient(130% 60% at 50% 0%,rgba(231,232,236,0.06),transparent 60%),var(--bg);
-  }
-  a{color:inherit;text-decoration:none}
-  .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
-  .btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:10px;font-weight:700;font-size:15px;
-    padding:13px 22px;cursor:pointer;color:#161618;background:linear-gradient(180deg,var(--silver-bright),var(--silver));transition:.15s}
-  .btn:hover{filter:brightness(1.05)}
-  .btn.ghost{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
-  .btn.ghost:hover{border-color:var(--silver);filter:none}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGITube Flow Automator — High-Velocity Bulk AI Generation</title>
+  <meta name="description" content="Turn massive prompt lists into high-resolution images and videos automatically in Google Flow. Smart references, watermark-free exports, and auto-organized batch folders.">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon32.png">
+  <link rel="apple-touch-icon" sizes="128x128" href="icons/icon128.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-  /* nav */
-  header{position:sticky;top:0;z-index:10;background:rgba(16,16,18,.85);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
-  .nav{display:flex;align-items:center;justify-content:space-between;height:62px}
-  .brand{display:flex;flex-direction:column;line-height:1.15}
-  .brand b{font-size:16px;color:#ffffff}
-  .brand b .brand-agi{color:#ff3333;font-size:16px;font-weight:bold}
-  .brand > span{font-size:11px;color:var(--muted)}
-  .nav-links{display:flex;gap:26px;align-items:center}
-  .nav-links a:not(.btn){color:var(--muted);font-size:14px;font-weight:600}
-  .nav-links a:not(.btn):hover{color:var(--text)}
-  .nav-links .btn{font-size:14px;padding:10px 16px}
-  .nav-discord{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--muted)}
-  .nav-discord:hover{border-color:var(--silver);color:var(--text)}
-  .nav-discord svg{width:18px;height:18px;fill:currentColor}
-  @media(max-width:720px){.nav-links a:not(.btn):not(.nav-discord){display:none}}
+  <style>
+    :root {
+      --bg: #09090b;
+      --bg-surface: #111116;
+      --bg-card: #16161e;
+      --bg-card-hover: #1e1e29;
+      --border: #232330;
+      --border-hover: #37374a;
+      --primary: #ef4444;
+      --primary-hover: #dc2626;
+      --primary-light: #f87171;
+      --primary-glow: rgba(239, 68, 68, 0.22);
+      --accent-grad: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+      --text: #f4f4f7;
+      --text-muted: #8e90a0;
+      --text-dim: #5c5e6e;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+      --shadow-glow: 0 0 25px rgba(239, 68, 68, 0.25);
+    }
 
-  /* hero */
-  .hero{text-align:center;padding:84px 0 60px}
-  .hero h1{font-size:46px;line-height:1.1;letter-spacing:-1px;color:var(--silver-bright);margin-bottom:18px}
-  .hero p{font-size:19px;color:var(--muted);max-width:620px;margin:0 auto 30px}
-  .cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
-  .pill{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--silver);
-    background:var(--tint);border:1px solid var(--border);padding:6px 14px;border-radius:999px;margin-bottom:22px}
-  @media(max-width:600px){.hero h1{font-size:34px}}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
 
-  section{padding:54px 0}
-  .h2{font-size:30px;color:var(--silver-bright);text-align:center;margin-bottom:10px;letter-spacing:-.5px}
-  .sub{text-align:center;color:var(--muted);max-width:560px;margin:0 auto 40px}
+    /* Ambient background lighting */
+    .ambient-glow {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 1000px;
+      height: 480px;
+      background: radial-gradient(ellipse at top, rgba(239, 68, 68, 0.12) 0%, rgba(249, 115, 22, 0.04) 40%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-  /* features */
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-  @media(max-width:820px){.grid{grid-template-columns:1fr 1fr}}
-  @media(max-width:540px){.grid{grid-template-columns:1fr}}
-  .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px}
-  .card .ic{width:38px;height:38px;border-radius:9px;background:var(--tint);display:flex;align-items:center;justify-content:center;
-    font-size:18px;margin-bottom:14px;color:var(--silver-bright)}
-  .card h3{font-size:17px;margin-bottom:6px;color:var(--silver-bright)}
-  .card p{font-size:14px;color:var(--muted)}
+    .wrap {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
 
-  /* steps */
-  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
-  @media(max-width:820px){.steps{grid-template-columns:1fr 1fr}}
-  .step{padding:20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg2)}
-  .step .n{font-size:13px;font-weight:800;color:#161618;background:linear-gradient(180deg,var(--silver-bright),var(--silver));
-    width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
-  .step h3{font-size:15px;margin-bottom:4px}
-  .step p{font-size:13px;color:var(--muted)}
+    a { color: inherit; text-decoration: none; }
 
-  /* pricing */
-  .prices{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:720px;margin:0 auto}
-  @media(max-width:600px){.prices{grid-template-columns:1fr}}
-  .price{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px}
-  .price.feat{border-color:var(--silver);box-shadow:0 0 0 1px var(--silver) inset}
-  .price h3{font-size:18px;color:var(--silver-bright)}
-  .price .amt{font-size:40px;font-weight:800;color:var(--silver-bright);margin:8px 0 2px}
-  .price .amt small{font-size:15px;font-weight:500;color:var(--muted)}
-  .price ul{list-style:none;margin:18px 0 22px}
-  .price li{font-size:14px;padding:6px 0 6px 24px;position:relative;color:var(--text)}
-  .price li::before{content:"✓";position:absolute;left:0;color:var(--ok);font-weight:700}
-  .price .btn{width:100%;justify-content:center}
+    /* Header & Navigation */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(9, 9, 11, 0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      transition: border-color 0.2s;
+    }
 
-  /* faq */
-  .faq{max-width:760px;margin:0 auto}
-  details{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:12px}
-  summary{cursor:pointer;font-weight:600;color:var(--silver-bright);list-style:none}
-  summary::-webkit-details-marker{display:none}
-  details p{color:var(--muted);font-size:14px;margin-top:10px}
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+    }
 
-  /* policies + footer */
-  .policy{max-width:820px;margin:0 auto}
-  .policy h3{color:var(--silver-bright);font-size:18px;margin:26px 0 8px}
-  .policy p{color:var(--muted);font-size:14px;margin-bottom:8px}
-  footer{border-top:1px solid var(--border);padding:30px 0;margin-top:30px}
-  .foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;align-items:center}
-  .foot a{color:var(--muted);font-size:13px;margin-right:16px}
-  .foot a:hover{color:var(--text)}
-  .foot .c{color:var(--muted);font-size:13px}
-  .disc{color:var(--muted);font-size:12px;text-align:center;margin-top:18px;opacity:.8}
-</style>
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+    }
+
+    .brand-title span {
+      color: var(--primary);
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.3px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-links a:not(.btn) {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: color 0.15s ease;
+    }
+
+    .nav-links a:not(.btn):hover {
+      color: #ffffff;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .icon-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      transition: all 0.15s ease;
+    }
+
+    .icon-link:hover {
+      border-color: var(--primary);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .icon-link svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px 22px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-primary {
+      background: var(--accent-grad);
+      color: #ffffff;
+      box-shadow: 0 4px 18px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 6px 24px rgba(239, 68, 68, 0.45);
+      transform: translateY(-2px);
+      filter: brightness(1.06);
+    }
+
+    .btn-ghost {
+      background: var(--bg-surface);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--border-hover);
+      background: var(--bg-card);
+      transform: translateY(-2px);
+    }
+
+    .btn-lg {
+      font-size: 15px;
+      padding: 14px 28px;
+      border-radius: 12px;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 90px 0 60px;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 7px 16px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary-light);
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 10px var(--primary);
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .hero h1 {
+      font-size: 52px;
+      line-height: 1.12;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      color: #ffffff;
+      max-width: 860px;
+      margin: 0 auto 20px;
+    }
+
+    .hero h1 span.gradient-text {
+      background: var(--accent-grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 19px;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 36px;
+      line-height: 1.65;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 48px;
+    }
+
+    /* Quick stats bar */
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 36px;
+      flex-wrap: wrap;
+      padding: 20px 30px;
+      border-radius: var(--radius-md);
+      background: rgba(22, 22, 30, 0.5);
+      border: 1px solid var(--border);
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .stat-item svg {
+      width: 18px;
+      height: 18px;
+      color: var(--primary);
+    }
+
+    /* Section Headers */
+    section {
+      padding: 80px 0;
+    }
+
+    .section-head {
+      text-align: center;
+      max-width: 660px;
+      margin: 0 auto 50px;
+    }
+
+    .section-tag {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary);
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .section-title {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: #ffffff;
+      margin-bottom: 14px;
+    }
+
+    .section-desc {
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 30px 24px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent-grad);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-hover);
+      background: var(--bg-card-hover);
+      box-shadow: var(--shadow-card);
+    }
+
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      color: var(--primary);
+      transition: transform 0.2s ease;
+    }
+
+    .feature-card:hover .feature-icon-box {
+      transform: scale(1.08);
+      background: rgba(239, 68, 68, 0.16);
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 10px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Steps Section */
+    .steps-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .step-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 28px 22px;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .step-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--accent-grad);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+    }
+
+    .step-card h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .step-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* Pricing Section */
+    .pricing-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 840px;
+      margin: 0 auto;
+    }
+
+    .pricing-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 38px 32px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s ease;
+    }
+
+    .pricing-card.featured {
+      background: linear-gradient(180deg, #191924 0%, #13131c 100%);
+      border-color: var(--primary);
+      box-shadow: 0 10px 40px -10px rgba(239, 68, 68, 0.3);
+    }
+
+    .featured-badge {
+      position: absolute;
+      top: -12px;
+      right: 28px;
+      background: var(--accent-grad);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 14px;
+      border-radius: 999px;
+      box-shadow: 0 2px 10px rgba(239, 68, 68, 0.4);
+    }
+
+    .pricing-header h3 {
+      font-size: 20px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .pricing-header p {
+      font-size: 14px;
+      color: var(--text-muted);
+      min-height: 42px;
+    }
+
+    .pricing-price {
+      margin: 24px 0 28px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .price-val {
+      font-size: 46px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      color: #ffffff;
+    }
+
+    .price-period {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .pricing-features {
+      list-style: none;
+      margin-bottom: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pricing-features li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .pricing-features svg {
+      width: 18px;
+      height: 18px;
+      color: var(--primary-light);
+      flex-shrink: 0;
+    }
+
+    /* FAQ Section */
+    .faq-container {
+      max-width: 820px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    details {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      transition: border-color 0.2s;
+    }
+
+    details[open] {
+      border-color: var(--border-hover);
+      background: var(--bg-card);
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 16px;
+      color: #ffffff;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    summary::after {
+      content: '+';
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+    }
+
+    details[open] summary::after {
+      content: '−';
+      color: var(--primary);
+    }
+
+    details p {
+      margin-top: 14px;
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 50px 0 35px;
+      margin-top: 60px;
+      background: #060608;
+    }
+
+    .foot-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 36px;
+      margin-bottom: 40px;
+    }
+
+    .foot-brand {
+      max-width: 320px;
+    }
+
+    .foot-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+
+    .foot-nav {
+      display: flex;
+      gap: 48px;
+      flex-wrap: wrap;
+    }
+
+    .foot-col h4 {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #ffffff;
+      margin-bottom: 16px;
+    }
+
+    .foot-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .foot-col a {
+      font-size: 13px;
+      color: var(--text-muted);
+      transition: color 0.15s ease;
+    }
+
+    .foot-col a:hover {
+      color: var(--primary-light);
+    }
+
+    .foot-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .disclaimer {
+      font-size: 12px;
+      color: var(--text-dim);
+      text-align: center;
+      margin-top: 24px;
+      line-height: 1.5;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .steps-container { grid-template-columns: repeat(2, 1fr); }
+      .pricing-wrap { grid-template-columns: 1fr; max-width: 480px; }
+      .hero h1 { font-size: 38px; }
+    }
+
+    @media (max-width: 640px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .steps-container { grid-template-columns: 1fr; }
+      .nav-links a:not(.btn):not(.icon-link) { display: none; }
+      .hero h1 { font-size: 30px; }
+      .hero p { font-size: 16px; }
+      .stats-bar { flex-direction: column; gap: 14px; align-items: flex-start; }
+      .foot-main { flex-direction: column; }
+    }
+  </style>
 </head>
 <body>
 
-<header>
-  <div class="wrap nav">
-    <a href="index.html" class="brand"><b><span class="brand-agi" style="color:#ff3333;font-size:16px;font-weight:bold">AGI</span>Tube Flow Automator&nbsp;✦</b><span>Bulk AI Image &amp; Video Gen</span></a>
-    <nav class="nav-links">
-      <a href="index.html#features">Features</a>
-      <a href="index.html#pricing">Pricing</a>
-      <a href="guide.html">Guide</a>
-      <a href="releases.html">Releases</a>
-      <a href="index.html#faq">FAQ</a>
-      <a href="https://discord.gg/wrvKMmdwX" target="_blank" rel="noopener" class="nav-discord" aria-label="Join our Discord"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.369a19.8 19.8 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.211.375-.445.865-.608 1.249a18.3 18.3 0 0 0-5.487 0 12.6 12.6 0 0 0-.617-1.25.077.077 0 0 0-.079-.036A19.7 19.7 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.08.08 0 0 0 .031.056 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.009c.12.099.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.891.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.8 19.8 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.028ZM8.02 15.331c-1.183 0-2.157-1.086-2.157-2.419 0-1.333.955-2.42 2.157-2.42 1.211 0 2.176 1.096 2.157 2.42 0 1.333-.955 2.419-2.157 2.419Zm7.975 0c-1.183 0-2.157-1.086-2.157-2.419 0-1.333.955-2.42 2.157-2.42 1.211 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.419-2.157 2.419Z"></path></svg></a>
-      <a href="index.html#pricing" class="btn">Get Lifetime</a>
-    </nav>
-  </div>
-</header>
+  <div class="ambient-glow"></div>
 
-<main>
-  <div class="wrap hero">
-    <span class="pill">Chrome &amp; Edge extension</span>
-    <h1>Bulk AI image &amp; video generation, on autopilot.</h1>
-    <p>Load a list of prompts, add your reference images, hit Start — and AGITube Flow Automator
-       generates and downloads every image and video for you, neatly organized. No more one-by-one.</p>
-    <div class="cta">
-      <a href="#pricing" class="btn">Get Lifetime Access</a>
-      <a href="#how" class="btn ghost">See how it works</a>
-    </div>
-  </div>
+  <!-- Header -->
+  <header>
+    <div class="wrap nav">
+      <a href="index.html" class="brand">
+        <img src="icons/icon48.png" alt="AGITube Logo" class="brand-logo">
+        <div class="brand-text">
+          <div class="brand-title"><span>AGI</span>Tube</div>
+          <div class="brand-sub">Flow Automator Studio</div>
+        </div>
+      </a>
 
-  <section id="features" class="wrap">
-    <h2 class="h2">Everything you need to automate bulk generation</h2>
-    <p class="sub">Built for creators who generate a lot of images and videos and are tired of doing it manually.</p>
-    <div class="grid">
-      <div class="card"><div class="ic">⚡</div><h3>Bulk from a prompt list</h3><p>Paste or upload a .txt file of prompts and queue them all in one automated run.</p></div>
-      <div class="card"><div class="ic">🎬</div><h3>Image &amp; video generation</h3><p>Automate both — batch images, or generate videos with text, start/end frames or reference modes.</p></div>
-      <div class="card"><div class="ic">🖼</div><h3>Reference images</h3><p>Add Subject, Scene and Style references that apply to every prompt in the batch.</p></div>
-      <div class="card"><div class="ic">🎛</div><h3>Models &amp; aspect ratios</h3><p>Pick your model, aspect ratio, count, duration and quality once — it applies to all.</p></div>
-      <div class="card"><div class="ic">⬇</div><h3>Auto-download, organized</h3><p>Every image and video saves to a per-run folder with clean, sequential filenames.</p></div>
-      <div class="card"><div class="ic">🪄</div><h3>Watermark removal</h3><p>The corner logo is removed from your downloaded images and videos automatically — on by default.</p></div>
-      <div class="card"><div class="ic">✨</div><h3>Upscale &amp; previews</h3><p>Optional upscaling, with live thumbnail previews as each result lands.</p></div>
-    </div>
-  </section>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how">How It Works</a>
+        <a href="#pricing">Pricing</a>
+        <a href="guide.html">Prompt Guide</a>
+        <a href="releases.html">Changelog</a>
+        <a href="#faq">FAQ</a>
+      </nav>
 
-  <section id="how" class="wrap">
-    <h2 class="h2">How it works</h2>
-    <p class="sub">From a list of prompts to a folder of images or videos in four steps.</p>
-    <div class="steps">
-      <div class="step"><div class="n">1</div><h3>Sign in</h3><p>Sign in with Google and open the side panel.</p></div>
-      <div class="step"><div class="n">2</div><h3>Add prompts</h3><p>Paste or upload your prompts; add reference images if you want.</p></div>
-      <div class="step"><div class="n">3</div><h3>Start</h3><p>Pick your settings and hit Start — watch the queue run.</p></div>
-      <div class="step"><div class="n">4</div><h3>Done</h3><p>Images and videos download automatically, organized by run.</p></div>
-    </div>
-  </section>
-
-  <section id="pricing" class="wrap">
-    <h2 class="h2">Simple, one-time pricing</h2>
-    <p class="sub">Try it free every day, then pay once for lifetime access. No subscription.</p>
-    <div class="prices">
-      <div class="price">
-        <h3>Free daily</h3>
-        <div class="amt">Free</div>
-        <ul>
-          <li>30 generations every day</li>
-          <li>All core features</li>
-          <li>No card required</li>
-        </ul>
-        <a href="https://chromewebstore.google.com/detail/tryaitoday-automator-bulk/bcmmekkamenpjoogmegiffgemlgikbgf" target="_blank" rel="noopener" class="btn ghost" style="width:100%;justify-content:center">Add to Chrome</a>
-      </div>
-      <div class="price feat">
-        <h3>Lifetime <span style="font-size:11px;color:var(--silver)">· LAUNCH PRICE</span></h3>
-        <div class="amt">10 USD <small>one-time</small></div>
-        <ul>
-          <li>Unlimited generations</li>
-          <li>All features &amp; future updates</li>
-          <li>Priority support</li>
-          <li>No recurring fees, ever</li>
-        </ul>
-        <a href="https://chromewebstore.google.com/detail/tryaitoday-automator-bulk/bcmmekkamenpjoogmegiffgemlgikbgf" target="_blank" rel="noopener" class="btn">Get Lifetime Access</a>
+      <div class="nav-actions">
+        <a href="https://discord.gg/wrvKMmdwX" target="_blank" rel="noopener" class="icon-link" title="Official Discord Community">
+          <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.893.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+        </a>
+        <a href="#pricing" class="btn btn-primary">
+          <span>Get Lifetime</span>
+        </a>
       </div>
     </div>
-  </section>
+  </header>
 
-  <section id="faq" class="wrap">
-    <h2 class="h2">Frequently asked questions</h2>
-    <div class="faq">
-      <details><summary>What does AGITube Flow Automator do?</summary><p>It's a Chrome/Edge extension that automates bulk AI image and video generation in Google Flow. You give it a list of prompts (and optional reference images), and it generates and downloads every image and video for you, organized into folders.</p></details>
-      <details><summary>Do I use my own account to generate?</summary><p>Yes. Generation runs through your own Google Flow session and quota — the extension just automates the process. You'll need to be signed in to Flow.</p></details>
-      <details><summary>Is it a subscription?</summary><p>No. There's a free daily allowance (30 generations per day), then a single one-time payment for lifetime access. No recurring charges.</p></details>
-      <details><summary>Which browsers are supported?</summary><p>Chromium browsers — Google Chrome and Microsoft Edge.</p></details>
-      <details><summary>Can I get a refund?</summary><p>Refunds may be requested within 20 days of purchase if the extension is non-functional and core features fail entirely (with proof). They aren't granted for change of mind or third-party changes. See the full <a href="refund.html" style="color:var(--silver)">Refund Policy</a>.</p></details>
+  <!-- Hero -->
+  <main>
+    <section class="wrap hero">
+      <div class="badge-pill">
+        <span class="badge-dot"></span>
+        <span>Version 2.0 Studio • Next-Gen AI Automation</span>
+      </div>
+
+      <h1>
+        Scale Your Visual Flow. Automate Prompts, Images &amp; Videos in <span class="gradient-text">Seconds</span>.
+      </h1>
+
+      <p>
+        AGITube Flow Automator transforms massive prompt lists into high-definition visual assets directly within Google Flow. Queue hundreds of tasks, preserve character consistency, and download structured batch folders completely hands-free.
+      </p>
+
+      <div class="hero-cta">
+        <!-- ======================================================================= -->
+        <!-- NOTA: COLE O LINK DA CHROME WEB STORE AQUI NO FUTURO QUANDO PUBLICAR     -->
+        <!-- Exemplo: href="https://chromewebstore.google.com/detail/agitube/...id"  -->
+        <!-- ======================================================================= -->
+        <a href="#" class="btn btn-primary btn-lg store-link" onclick="handleStoreClick(event)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><line x1="21.17" y1="8" x2="12" y2="8"></line><line x1="3.95" y1="6.06" x2="8.54" y2="14"></line><line x1="10.88" y1="21.94" x2="15.46" y2="14"></line></svg>
+          <span>Add to Chrome</span>
+        </a>
+        <a href="#pricing" class="btn btn-ghost btn-lg">
+          <span>Explore Pricing</span>
+        </a>
+      </div>
+
+      <!-- Key Guarantees -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          <span>10x Production Speed</span>
+        </div>
+        <div class="stat-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span>100% Local In-Browser Execution</span>
+        </div>
+        <div class="stat-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          <span>Watermark Removal Included</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="wrap">
+      <div class="section-head">
+        <span class="section-tag">Studio Capabilities</span>
+        <h2 class="section-title">Engineered for High-Output Creators</h2>
+        <p class="section-desc">Stop clicking prompts one-by-one. AGITube delivers the automation infrastructure needed to run massive image and video productions on autopilot.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          </div>
+          <h3>Automated Prompt Ingestion</h3>
+          <p>Paste extensive prompt batches or drag-and-drop <code>.txt</code> files. The queue schedules generations sequentially with smart throttling.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
+          </div>
+          <h3>Unified Image &amp; Video Engine</h3>
+          <p>Switch seamlessly between still frames and cinematic motion. Schedule multi-scene video runs directly into your active Google Flow canvas.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+          </div>
+          <h3>Reference Image Locking</h3>
+          <p>Bind Subject, Scene, and Style image references across entire batches. Maintain strict facial and stylistic consistency effortlessly.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+          </div>
+          <h3>Dynamic Tagging &amp; Chaining</h3>
+          <p>Utilize <code>@tag</code> and <code>#name</code> syntax to dynamically chain generated outputs into subsequent video prompts for continuous narratives.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          </div>
+          <h3>Smart Batch Archiving</h3>
+          <p>No more cluttered downloads folder. AGITube captures each generated file and packages it into structured run directories on your drive.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          </div>
+          <h3>Watermark Removal Engine</h3>
+          <p>Export pristine assets without distracting watermarks, ensuring your outputs are immediately suitable for commercial client projects.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how" class="wrap">
+      <div class="section-head">
+        <span class="section-tag">Simple Workflow</span>
+        <h2 class="section-title">From Prompt List to Final Assets in 4 Steps</h2>
+        <p class="section-desc">Get started in seconds directly within your Chrome or Edge browser.</p>
+      </div>
+
+      <div class="steps-container">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <h3>Launch Studio</h3>
+          <p>Open your Google Flow canvas and launch the AGITube side panel with one click from your extensions bar.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <h3>Queue Your Vision</h3>
+          <p>Paste your prompt list or upload a text file. Attach reference photos or style anchors as needed.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <h3>Run Autopilot</h3>
+          <p>Select your aspect ratio and models, then hit Start. Watch the progress tracker monitor each run in real time.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <h3>Export Organized</h3>
+          <p>All finished videos and images download automatically into structured, timestamped batch directories.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="wrap">
+      <div class="section-head">
+        <span class="section-tag">Transparent Pricing</span>
+        <h2 class="section-title">Invest Once. Generate Forever.</h2>
+        <p class="section-desc">No monthly recurring subscriptions. Test it free every day, or unlock limitless studio capability with a single lifetime license.</p>
+      </div>
+
+      <div class="pricing-wrap">
+        <!-- Free Starter -->
+        <div class="pricing-card">
+          <div class="pricing-header">
+            <h3>Daily Free Tier</h3>
+            <p>Perfect for testing and light daily workflows.</p>
+          </div>
+          <div class="pricing-price">
+            <div class="price-val">Free</div>
+            <div class="price-period">forever</div>
+          </div>
+          <ul class="pricing-features">
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span><strong>30 Generations</strong> every 24 hours</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Full batch queue automation</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>All aspect ratios &amp; models</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>No credit card required</span>
+            </li>
+          </ul>
+          
+          <!-- ======================================================================= -->
+          <!-- NOTA: COLE O LINK DA CHROME WEB STORE AQUI NO FUTURO QUANDO PUBLICAR     -->
+          <!-- Exemplo: href="https://chromewebstore.google.com/detail/..."           -->
+          <!-- ======================================================================= -->
+          <a href="#" class="btn btn-ghost store-link" style="width: 100%;" onclick="handleStoreClick(event)">
+            <span>Add to Chrome (Free)</span>
+          </a>
+        </div>
+
+        <!-- Lifetime Pro -->
+        <div class="pricing-card featured">
+          <div class="featured-badge">Launch Offer</div>
+          <div class="pricing-header">
+            <h3>Lifetime Studio</h3>
+            <p>Unlimited creative freedom with lifetime updates.</p>
+          </div>
+          <div class="pricing-price">
+            <div class="price-val">$10</div>
+            <div class="price-period">USD • one-time payment</div>
+          </div>
+          <ul class="pricing-features">
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span><strong>Unlimited</strong> generations with no daily caps</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Built-in watermark removal engine</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Priority queue execution &amp; stability</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>All future updates &amp; new features</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Dedicated Discord VIP priority support</span>
+            </li>
+          </ul>
+          
+          <!-- ======================================================================= -->
+          <!-- NOTA: COLE O LINK DA CHROME WEB STORE AQUI NO FUTURO QUANDO PUBLICAR     -->
+          <!-- O upgrade para Lifetime é feito com 1 clique diretamente na extensão.    -->
+          <!-- ======================================================================= -->
+          <a href="#" class="btn btn-primary store-link" style="width: 100%;" onclick="handleStoreClick(event)">
+            <span>Install &amp; Unlock Lifetime</span>
+          </a>
+          <p style="font-size: 11px; color: var(--text-dim); text-align: center; margin-top: 10px;">
+            1-click Lifetime upgrade available directly inside the extension panel.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="wrap">
+      <div class="section-head">
+        <span class="section-tag">Got Questions?</span>
+        <h2 class="section-title">Frequently Asked Questions</h2>
+      </div>
+
+      <div class="faq-container">
+        <details>
+          <summary>What exactly is AGITube Flow Automator?</summary>
+          <p>AGITube Flow Automator is a lightweight Chromium browser extension (Chrome, Edge, Brave) built for digital artists, creators, and studios. It automates repetitive bulk image and video prompt submissions in Google Flow, saving creators hours of manual copying, pasting, and downloading.</p>
+        </details>
+
+        <details>
+          <summary>Does generation use my own Google Flow session?</summary>
+          <p>Yes. The extension operates securely within your active Google Flow session in your browser. It does not act as a proxy or store your credentials. Generations use your own account allowances, maintaining full privacy and compliance.</p>
+        </details>
+
+        <details>
+          <summary>Are there any monthly recurring fees or hidden charges?</summary>
+          <p>Never. The Lifetime License is a single one-time payment of $10 USD. There are no subscriptions, renewal invoices, or recurring charges. Once purchased, your license is bound to your account forever.</p>
+        </details>
+
+        <details>
+          <summary>How do I activate my license after purchasing?</summary>
+          <p>After installing the extension from the Chrome Web Store and signing in with your Google account, click "Get Lifetime" directly inside the extension. Once the payment completes via Dodo Payments, your account is upgraded to Lifetime immediately with no manual keys required.</p>
+        </details>
+
+        <details>
+          <summary>What is your refund policy?</summary>
+          <p>We provide a 14-day technical guarantee. If the extension does not function as intended on your supported Chromium browser and our support team cannot resolve the technical issue, you are eligible for a full refund. Please review our complete <a href="refund.html" style="color:var(--primary-light);text-decoration:underline;">Refund Policy</a> for terms.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="wrap">
+      <div class="foot-main">
+        <div class="foot-brand">
+          <div class="brand">
+            <img src="icons/icon48.png" alt="AGITube Logo" class="brand-logo">
+            <div class="brand-text">
+              <div class="brand-title"><span>AGI</span>Tube</div>
+              <div class="brand-sub">Flow Automator Studio</div>
+            </div>
+          </div>
+          <p class="foot-desc">The premier automation companion for high-velocity AI image and video creation workflows.</p>
+        </div>
+
+        <div class="foot-nav">
+          <div class="foot-col">
+            <h4>Product</h4>
+            <ul>
+              <li><a href="#features">Features</a></li>
+              <li><a href="#how">How It Works</a></li>
+              <li><a href="#pricing">Pricing</a></li>
+              <li><a href="releases.html">Changelog &amp; Roadmap</a></li>
+            </ul>
+          </div>
+
+          <div class="foot-col">
+            <h4>Documentation</h4>
+            <ul>
+              <li><a href="guide.html">Prompt &amp; Syntax Guide</a></li>
+              <li><a href="#faq">FAQ</a></li>
+              <li><a href="https://discord.gg/wrvKMmdwX" target="_blank" rel="noopener">Discord Community</a></li>
+            </ul>
+          </div>
+
+          <div class="foot-col">
+            <h4>Legal &amp; Support</h4>
+            <ul>
+              <li><a href="privacy.html">Privacy Policy</a></li>
+              <li><a href="refund.html">Refund Policy</a></li>
+              <li><a href="mailto:agitubeautomator@gmail.com">Contact Support</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="foot-bottom">
+        <div>&copy; 2026 AGITube Flow Automator. All rights reserved.</div>
+        <div>Inquiries: <a href="mailto:agitubeautomator@gmail.com" style="color:var(--primary-light);">agitubeautomator@gmail.com</a></div>
+      </div>
+
+      <div class="disclaimer">
+        Disclaimer: AGITube Flow Automator is an independent productivity tool and browser extension. It is not affiliated with, sponsored by, or endorsed by Google LLC. "Google Flow" is a trademark of its respective owner.
+      </div>
     </div>
-  </section>
+  </footer>
 
-  <section class="wrap policy">
-    <h2 class="h2" id="refund">Refund policy</h2>
-    <p>Refunds on the one-time Lifetime purchase may be requested within <b>20 days</b> of purchase, and are granted only if the extension is non-functional and core features fail entirely (with proof) — not for change of mind or third-party changes. Please contact support before opening any bank dispute. Read the full <a href="refund.html" style="color:var(--silver)">Refund Policy</a>.</p>
+  <!-- Store Link Click Handler -->
+  <script>
+    function handleStoreClick(e) {
+      const link = e.currentTarget.getAttribute('href');
+      if (link === '#' || link === '' || !link.startsWith('http')) {
+        e.preventDefault();
+        alert('AGITube Flow Automator will be available on the Chrome Web Store shortly!\n\nJoin our official Discord community (discord.gg/wrvKMmdwX) for launch notifications.');
+      }
+    }
+  </script>
 
-    <h3 id="privacy">Privacy</h3>
-    <p>We use your Google sign-in to identify your account and manage the free trial and your license; your account email and sign-in token are sent to our backend for this, and your email is shared with our payment provider only to process a purchase. We do not sell your data. Your prompts and generated images stay in your own Google Flow account and download to your device — we never store or access them. Read the full <a href="privacy.html" style="color:var(--silver)">Privacy Policy</a>.</p>
-
-    <h3 id="terms">Terms of use</h3>
-    <p>AGITube Flow Automator is a productivity tool that automates actions you can perform yourself in Google Flow, using your own account and quota. You are responsible for complying with the terms of any third-party services you use it with. The software is provided "as is" without warranty. Lifetime access refers to the lifetime of the tool.</p>
-
-    <h3 id="acceptable-use">Prohibited content &amp; acceptable use</h3>
-    <p>You may not use AGITube Flow Automator to generate, request, or process any content that is sexually explicit, pornographic, or otherwise NSFW. This includes deepfakes or synthetic media that depict a real, identifiable person (including public figures) without consent, or that are meant to impersonate, deceive, defame, sexualize, or harm any person. It also includes any content that depicts minors in an unsafe or inappropriate context, and any content that is illegal or violates the rights of others. All generation is performed through your own Google Flow account and is subject to Google's content and safety policies. Our tool only relays your prompts to Google Flow and does not bypass, disable, or circumvent any of Google's moderation or safety controls. Violating this policy may result in immediate suspension or termination of your license without a refund.</p>
-
-    <h3>Contact</h3>
-    <p>Questions, support, or refund requests: <a href="mailto:agitubeautomator@gmail.com" style="color:var(--silver)">agitubeautomator@gmail.com</a></p>
-  </section>
-</main>
-
-<footer>
-  <div class="wrap foot">
-    <div>
-      <a href="#features">Features</a>
-      <a href="#pricing">Pricing</a>
-      <a href="guide.html">Prompt Guide</a>
-      <a href="releases.html">Releases</a>
-      <a href="refund.html">Refund</a>
-      <a href="privacy.html">Privacy</a>
-      <a href="#terms">Terms</a>
-      <a href="#acceptable-use">Content Policy</a>
-      <a href="mailto:agitubeautomator@gmail.com">Contact</a>
-    </div>
-    <div class="c">© 2026 AGITube Flow Automator</div>
-  </div>
-  <div class="wrap disc">Not affiliated with, endorsed by, or sponsored by Google. "Google Flow" is a trademark of Google LLC.</div>
-</footer>
-
-
-
-</body></html>
+</body>
+</html>

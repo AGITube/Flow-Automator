@@ -1,224 +1,576 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Prompt Guide — AGITube Flow Automator</title>
-<meta name="description" content="How to write prompts for AGITube Flow Automator — batching images and videos, reference images, @tag to reuse an image, #name to chain images, and video modes with @start / @end frame tags." />
-<style>
-  :root{--bg:#101012;--bg2:#17171a;--bg3:#202024;--border:#34343a;--text:#e7e8ec;--muted:#8b8b94;--silver:#e7e8ec;--silver-bright:#f6f7f9;--tint:rgba(231,232,236,0.08);--radius:12px;--warn:#d9b488;--ok:#a0c2b4}
-  *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
-  body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;color:var(--text);font-size:16px;line-height:1.65;background:radial-gradient(130% 60% at 50% 0%,rgba(231,232,236,0.06),transparent 60%),var(--bg)}
-  a{color:var(--silver);text-decoration:none}
-  a:hover{text-decoration:underline}
-  .wrap{max-width:820px;margin:0 auto;padding:0 20px}
-  header{position:sticky;top:0;z-index:10;background:rgba(16,16,18,.85);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
-  .nav{display:flex;align-items:center;justify-content:space-between;height:62px;max-width:1040px;margin:0 auto;padding:0 20px}
-  .brand{display:flex;flex-direction:column;line-height:1.15}
-  .brand b{font-size:16px;color:#ffffff}
-  .brand b .brand-agi{color:#ff3333;font-size:16px;font-weight:bold}
-  .brand > span{font-size:11px;color:var(--muted)}
-  .btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:10px;font-weight:700;font-size:15px;
-    padding:13px 22px;cursor:pointer;color:#161618;background:linear-gradient(180deg,var(--silver-bright),var(--silver));transition:.15s;text-decoration:none}
-  .btn:hover{filter:brightness(1.05);text-decoration:none}
-  .nav-links{display:flex;gap:26px;align-items:center}
-  .nav-links a:not(.btn){color:var(--muted);font-size:14px;font-weight:600;text-decoration:none}
-  .nav-links a:not(.btn):hover{color:var(--text);text-decoration:none}
-  .nav-links a.active{color:var(--silver-bright);text-decoration:none}
-  .nav-links .btn{font-size:14px;padding:10px 16px}
-  .nav-discord{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--muted);text-decoration:none}
-  .nav-discord:hover{border-color:var(--silver);color:var(--text);text-decoration:none}
-  .nav-discord svg{width:18px;height:18px;fill:currentColor}
-  @media(max-width:720px){.nav-links a:not(.btn):not(.nav-discord){display:none}}
-  .policy{padding:46px 0 30px}
-  .policy h1{font-size:32px;color:var(--silver-bright);letter-spacing:-.5px;margin-bottom:8px}
-  .policy .updated{color:var(--muted);font-size:13px;margin-bottom:26px}
-  .policy h2{color:var(--silver-bright);font-size:20px;margin:38px 0 10px}
-  .policy h3{color:var(--text);font-size:15px;margin:18px 0 6px}
-  .policy p{color:var(--muted);font-size:15px;margin-bottom:10px}
-  .policy ul{margin:6px 0 14px 0;list-style:none}
-  .policy li{color:var(--muted);font-size:15px;padding:5px 0 5px 24px;position:relative}
-  .policy li.dot::before{content:"•";position:absolute;left:6px;color:var(--silver)}
-  .policy li.yes::before{content:"✓";position:absolute;left:2px;color:var(--ok);font-weight:700}
-  .policy strong{color:var(--text)}
-  code{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:1px 6px;font-family:"Cascadia Code",Consolas,monospace;font-size:13px;color:var(--silver-bright)}
-  pre{background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--silver);border-radius:var(--radius);padding:14px 16px;margin:10px 0 16px;overflow-x:auto}
-  pre code{background:none;border:none;padding:0;color:var(--text);font-size:13.5px;line-height:1.9;white-space:pre;display:block}
-  pre code .t{color:var(--silver-bright);font-weight:600}
-  .lead{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin:8px 0 24px}
-  .lead p{margin:0;font-size:15px}
-  .toc{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
-  .toc a{background:var(--bg3);border:1px solid var(--border);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--muted)}
-  .toc a:hover{color:var(--text);text-decoration:none;border-color:var(--silver)}
-  .note{border-left:3px solid var(--warn);background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--warn);border-radius:var(--radius);padding:12px 15px;margin:14px 0}
-  .note p{margin:0;font-size:14px}
-  footer{border-top:1px solid var(--border);padding:26px 0;margin-top:24px}
-  .foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;align-items:center;max-width:1040px;margin:0 auto;padding:0 20px}
-  .foot a{color:var(--muted);font-size:13px;margin-right:16px}
-  .foot a:hover{color:var(--text)}
-  .foot .c{color:var(--muted);font-size:13px}
-  .disc{color:var(--muted);font-size:12px;text-align:center;margin-top:16px;opacity:.8;max-width:1040px;margin-left:auto;margin-right:auto;padding:0 20px}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt & Automation Guide — AGITube Flow Automator</title>
+  <meta name="description" content="Master batch AI image and video generation with AGITube Flow Automator. Learn prompt structures, reference tagging, dynamic chaining, and video frame controls.">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon32.png">
+  <link rel="apple-touch-icon" sizes="128x128" href="icons/icon128.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #09090b;
+      --bg-surface: #111116;
+      --bg-card: #16161e;
+      --bg-card-hover: #1e1e29;
+      --border: #232330;
+      --border-hover: #37374a;
+      --primary: #ef4444;
+      --primary-hover: #dc2626;
+      --primary-light: #f87171;
+      --primary-glow: rgba(239, 68, 68, 0.22);
+      --accent-grad: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+      --text: #f4f4f7;
+      --text-muted: #8e90a0;
+      --text-dim: #5c5e6e;
+      --code-bg: #0d0d12;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    .wrap {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(9, 9, 11, 0.88);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .brand-title span { color: var(--primary); }
+    .brand-sub { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-links a:not(.btn) {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: color 0.15s;
+    }
+
+    .nav-links a:not(.btn):hover, .nav-links a.active {
+      color: #ffffff;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent-grad);
+      color: #ffffff;
+      box-shadow: 0 4px 16px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    /* Guide Layout */
+    .guide-hero {
+      padding: 60px 0 40px;
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .guide-tag {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary-light);
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .guide-hero h1 {
+      font-size: 44px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+
+    .guide-hero p {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .guide-body {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 48px;
+      padding: 60px 0 100px;
+    }
+
+    /* Sidebar / TOC */
+    .toc-sidebar {
+      position: sticky;
+      top: 100px;
+      align-self: start;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px 20px;
+    }
+
+    .toc-title {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #ffffff;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toc-list a {
+      font-size: 13px;
+      color: var(--text-muted);
+      display: block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+
+    .toc-list a:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+      padding-left: 12px;
+    }
+
+    /* Guide Content */
+    .guide-content {
+      min-width: 0;
+    }
+
+    .guide-section {
+      margin-bottom: 60px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .guide-section:last-child {
+      border-bottom: none;
+    }
+
+    .guide-section h2 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sec-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--accent-grad);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .guide-section p {
+      font-size: 15px;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+
+    .guide-section h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 26px 0 12px;
+    }
+
+    /* Code Blocks & Callouts */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px 20px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #e2e4ed;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--primary-light);
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+
+    .callout {
+      background: var(--bg-card);
+      border-left: 3px solid var(--primary);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 16px 20px;
+      margin: 20px 0;
+    }
+
+    .callout-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .callout p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .table-box {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin: 20px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      background: var(--bg-surface);
+      color: #ffffff;
+      padding: 12px 16px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+      background: #060608;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .foot-wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    @media (max-width: 860px) {
+      .guide-body { grid-template-columns: 1fr; }
+      .toc-sidebar { display: none; }
+      .nav-links a:not(.btn) { display: none; }
+      .guide-hero h1 { font-size: 32px; }
+    }
+  </style>
 </head>
 <body>
 
-<header>
-  <div class="wrap nav">
-    <a href="index.html" class="brand" style="text-decoration:none"><b><span class="brand-agi" style="color:#ff3333;font-size:16px;font-weight:bold">AGI</span>Tube Flow Automator&nbsp;✦</b><span>Bulk AI Image &amp; Video Gen</span></a>
-    <nav class="nav-links">
-      <a href="index.html#features">Features</a>
-      <a href="index.html#pricing">Pricing</a>
-      <a href="guide.html" class="active">Guide</a>
-      <a href="releases.html">Releases</a>
-      <a href="index.html#faq">FAQ</a>
-      <a href="https://discord.gg/wrvKMmdwX" target="_blank" rel="noopener" class="nav-discord" aria-label="Join our Discord"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.369a19.8 19.8 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.211.375-.445.865-.608 1.249a18.3 18.3 0 0 0-5.487 0 12.6 12.6 0 0 0-.617-1.25.077.077 0 0 0-.079-.036A19.7 19.7 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.08.08 0 0 0 .031.056 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.009c.12.099.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.891.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.8 19.8 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.028ZM8.02 15.331c-1.183 0-2.157-1.086-2.157-2.419 0-1.333.955-2.42 2.157-2.42 1.211 0 2.176 1.096 2.157 2.42 0 1.333-.955 2.419-2.157 2.419Zm7.975 0c-1.183 0-2.157-1.086-2.157-2.419 0-1.333.955-2.42 2.157-2.42 1.211 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.419-2.157 2.419Z"></path></svg></a>
-      <a href="index.html#pricing" class="btn">Get Lifetime</a>
-    </nav>
-  </div>
-</header>
+  <!-- Header -->
+  <header>
+    <div class="wrap nav">
+      <a href="index.html" class="brand">
+        <img src="icons/icon48.png" alt="AGITube Logo" class="brand-logo">
+        <div class="brand-text">
+          <div class="brand-title"><span>AGI</span>Tube</div>
+          <div class="brand-sub">Flow Automator Studio</div>
+        </div>
+      </a>
 
-<main class="wrap policy">
-  <h1>Prompt Guide</h1>
-  <p class="updated">Everything you can put in a prompt — with copy-ready examples.</p>
+      <nav class="nav-links">
+        <a href="index.html#features">Features</a>
+        <a href="index.html#how">How It Works</a>
+        <a href="index.html#pricing">Pricing</a>
+        <a href="guide.html" class="active">Prompt Guide</a>
+        <a href="releases.html">Changelog</a>
+      </nav>
 
-  <div class="lead">
-    <p>AGITube Flow Automator runs a <strong>list</strong> of prompts on Google Flow in one batch — for <strong>images</strong> or <strong>videos</strong>. Beyond plain text, you can pull in <strong>reference images</strong>, reuse an image by name with <strong><code>@tag</code></strong>, name a new image with <strong><code>#name</code></strong> so later prompts can reuse it, and — in the Video tab — drive each clip with <strong><code>@start</code></strong> / <strong><code>@end</code></strong> frame tags.</p>
-  </div>
-
-  <div class="note"><p><strong>Two tabs, same idea.</strong> Switch between <strong>Image</strong> and <strong>Video</strong> at the top of the side panel. Each keeps its own prompts, queue and history, so you can set up one without disturbing the other. Sections 1–5 below apply to both; section 6 covers what's specific to video.</p></div>
-
-  <div class="toc">
-    <a href="#basics">Basics</a>
-    <a href="#refs">Reference images</a>
-    <a href="#at">@tag — reuse an image</a>
-    <a href="#hash">#name — name an image</a>
-    <a href="#chain">Chaining (consistency)</a>
-    <a href="#video">Video prompts</a>
-    <a href="#tips">Tips</a>
-  </div>
-
-  <h2 id="basics">1. The basics</h2>
-  <p>Type or upload one prompt per block. <strong>Separate each prompt with a blank line</strong> — every block becomes one generation (or several, if you set images-per-prompt above 1).</p>
-  <pre><code>a cozy cabin in a snowy forest, warm light in the windows
-
-a neon city street at night, rain reflections, cinematic
-
-a studio portrait of an astronaut, soft key light</code></pre>
-  <p>Load a <code>.txt</code> file or paste directly, pick your model / aspect ratio / quality once in <strong>Settings</strong>, then press <strong>Start</strong>. Results preview live in the queue and auto-download into a per-run folder.</p>
-
-  <h3>JSON prompts are allowed too</h3>
-  <p>Prefer <strong>structured</strong> prompts? You can paste <strong>JSON</strong> straight into the prompt box — it's accepted as your prompt and sent to Flow as-is. Handy when you write prompts as objects (subject, scene, style, camera…) or export them from another tool.</p>
-  <pre><code>{ "subject": "a red fox", "scene": "snowy pine forest at dawn", "style": "cinematic, 35mm, shallow depth of field" }
-
-{ "subject": "a neon city street", "scene": "night, after rain", "style": "moody, reflective, wide shot" }</code></pre>
-  <p>Each JSON block counts as <strong>one</strong> prompt — <strong>separate multiple prompts with a blank line</strong>, exactly like plain-text ones. <code>@tag</code> and <code>#name</code> still work inside a JSON prompt.</p>
-
-  <h2 id="refs">2. Reference images</h2>
-  <p>In the <strong>Reference Images</strong> section you can add <strong>Subject</strong> (who / what), <strong>Scene</strong> (where), and <strong>Style</strong> (look / mood) images — from your Flow <strong>Library</strong> or a quick <strong>Upload</strong>. They apply to <strong>every</strong> prompt in the batch.</p>
-  <ul>
-    <li class="dot">Up to <strong>5 per slot</strong>, and <strong>10 in total</strong> across Subject + Scene + Style combined.</li>
-    <li class="dot">Use these when the whole batch should share the same look or characters.</li>
-  </ul>
-
-  <h2 id="at">3. <code>@tag</code> — reuse an existing image by name</h2>
-  <p>If an image in your Flow project has a name, drop it into a prompt with <code>@</code> and it's pulled in as a reference for just that prompt:</p>
-  <pre><code><span class="t">@lina</span> standing in a misty forest, golden hour, wide shot</code></pre>
-  <ul>
-    <li class="dot"><code>@name</code> for single-word names; <code>@[two words]</code> for names with spaces.</li>
-    <li class="dot">The name is the image's name in Flow. An uploaded file like <code>lina.png</code> works as <code>@lina</code> (the extension is optional — <code>@[lina.png]</code> also works).</li>
-    <li class="dot">If several images share a name, the <strong>newest</strong> one — or the one you just made in this run — is used.</li>
-    <li class="dot">An <code>@tag</code> the extension can't find is simply left in the prompt as plain text.</li>
-  </ul>
-
-  <h2 id="hash">4. <code>#name</code> — name the image a prompt creates</h2>
-  <p>Add <code>#name</code> to a prompt to give the image it generates a name. The <code>#tag</code> isn't part of the picture — it just labels the result (and renames it in Flow) so you can reference it later with <code>@name</code>.</p>
-  <pre><code>a young woman, red hair, freckles, studio portrait <span class="t">#lina</span></code></pre>
-  <ul>
-    <li class="dot"><code>#name</code> or <code>#[two words]</code>, same as tags.</li>
-    <li class="dot">One name per prompt. When a prompt makes several images, the name is given to the first one.</li>
-  </ul>
-
-  <h2 id="chain">5. Chaining — the same character across a batch</h2>
-  <p>Combine the two: name a character once, then reuse it in the prompts that follow — all in a single run, no need to refresh anything.</p>
-  <pre><code>a young woman, red hair, freckles, studio portrait <span class="t">#lina</span>
-
-<span class="t">@lina</span> sitting in a sunlit cafe, candid, 35mm
-
-<span class="t">@lina</span> hiking a mountain trail at sunrise, wide cinematic shot
-
-<span class="t">@lina</span> in a spacesuit on a red-rock planet, dramatic light</code></pre>
-  <p>The first prompt creates and names <code>lina</code>; every prompt after it reuses that exact image as a reference — so it's recognizably the same person throughout.</p>
-  <div class="note"><p>You can mix both in one line — e.g. <code>#hero @city walking out of the station at dusk</code> names the new image <code>hero</code> while referencing your <code>city</code> image.</p></div>
-
-  <h2 id="video">6. Video prompts</h2>
-  <p>Switch to the <strong>Video</strong> tab to batch-generate clips the same way you batch images — one prompt per block, separated by a blank line. Pick your <strong>model</strong>, <strong>aspect ratio</strong>, <strong>videos-per-prompt</strong> and <strong>duration</strong> once in <strong>Settings</strong>, choose a <strong>video mode</strong>, then press <strong>Start</strong>.</p>
-
-  <h3>Video modes</h3>
-  <ul>
-    <li class="dot"><strong>Text</strong> — prompt only; the model creates the clip from your words.</li>
-    <li class="dot"><strong>Start frame</strong> — the clip begins from an image you choose and animates forward.</li>
-    <li class="dot"><strong>Start + End frame</strong> — you give the first and last frame; Flow interpolates the motion between them.</li>
-    <li class="dot"><strong>Reference</strong> — up to <strong>4</strong> reference images guide the subject / look, and the clip is generated to match.</li>
-  </ul>
-
-  <h3>Frame tags — <code>@start</code>, <code>@end</code>, and references</h3>
-  <p>Just like <code>@tag</code> for images, you can name the exact frames a single video should use, right inside its prompt. Which tags are available depends on the mode:</p>
-  <ul>
-    <li class="dot"><strong>Start frame:</strong> <code>@start:name</code> sets that prompt's opening frame.</li>
-    <li class="dot"><strong>Start + End frame:</strong> <code>@start:name</code> and <code>@end:name</code> set the first and last frames.</li>
-    <li class="dot"><strong>Reference:</strong> <code>@name</code> (plain, up to 4) pulls images in as references — same syntax as the Image tab.</li>
-  </ul>
-  <pre><code><span class="t">@start:sunrise</span> the camera pushes slowly through the misty valley, cinematic
-
-<span class="t">@start:door_closed</span> <span class="t">@end:door_open</span> the old wooden door swings open into daylight</code></pre>
-  <ul>
-    <li class="dot">Single-word names use <code>@start:name</code>; names with spaces use <code>@start:[my hero]</code>.</li>
-    <li class="dot">Names resolve to a Flow image exactly like <code>@tag</code> / <code>#name</code> in the Image tab — so an image you named earlier (or uploaded) can become a start or end frame.</li>
-    <li class="dot">Tags are removed from the text sent to the model, and shown as chips on each queue row so you can see which frames a clip will use.</li>
-  </ul>
-
-  <h3>Different frames for each prompt</h3>
-  <p>Prefer picking visually? Open <strong>Different for each prompt</strong> to assign a start / end / reference image to every prompt from a grid — no tags needed. Anything you set there fills in for prompts that don't already carry a tag.</p>
-  <div class="note"><p><strong>Precedence:</strong> an <code>@tag</code> in the prompt wins, then a per-prompt assignment, then the shared frame set in Settings. So you can set one default and override just the prompts that need something different.</p></div>
-
-  <h3>Models &amp; durations</h3>
-  <ul>
-    <li class="dot"><strong>Omni Flash</strong> — fastest; supports <strong>4 / 6 / 8 / 10s</strong> and Text, Start-frame, and Reference modes.</li>
-    <li class="dot"><strong>Veo 3.1 Lite / Fast / Quality</strong> — higher quality at <strong>8s</strong>; Lite and Fast support all modes, Quality is best for Text and frame modes.</li>
-    <li class="dot">The panel auto-corrects impossible combinations (for example, resetting the duration to 8s for Veo models) and tells you why.</li>
-  </ul>
-  <p>Finished clips preview in the queue and auto-download into their own <strong>Videos</strong> run folder, separate from your images.</p>
-
-  <h2 id="tips">7. Tips</h2>
-  <ul>
-    <li class="yes">Keep each prompt on its own block, separated by a blank line.</li>
-    <li class="yes">Set Subject / Scene / Style references for a look that applies to the <em>whole</em> batch; use <code>@tag</code> when only <em>one</em> prompt needs a specific image.</li>
-    <li class="yes">Name early: put <code>#name</code> on the prompt that establishes a character or product, then <code>@name</code> in the rest.</li>
-    <li class="yes">Names are case-insensitive and can use letters, numbers, <code>-</code> and <code>_</code> (e.g. <code>@product_01</code>).</li>
-    <li class="yes">Click any finished thumbnail in the queue to preview it full-size right away.</li>
-    <li class="yes">For video, name an image with <code>#name</code> in the Image tab first, then use it as <code>@start:name</code> or <code>@end:name</code> over in the Video tab.</li>
-  </ul>
-  <p style="margin-top:22px">Questions or ideas? Join our <a href="https://discord.gg/wrvKMmdwX">Discord</a> or email <a href="mailto:agitubeautomator@gmail.com">agitubeautomator@gmail.com</a>.</p>
-</main>
-
-<footer>
-  <div class="wrap foot">
-    <div>
-      <a href="index.html#features">Features</a>
-      <a href="index.html#pricing">Pricing</a>
-      <a href="guide.html">Prompt Guide</a>
-      <a href="releases.html">Releases</a>
-      <a href="refund.html">Refund</a>
-      <a href="privacy.html">Privacy</a>
-      <a href="index.html#terms">Terms</a>
-      <a href="index.html#acceptable-use">Content Policy</a>
-      <a href="mailto:agitubeautomator@gmail.com">Contact</a>
+      <a href="index.html#pricing" class="btn btn-primary">
+        <span>Get Lifetime</span>
+      </a>
     </div>
-    <div class="c">© 2026 AGITube Flow Automator</div>
+  </header>
+
+  <!-- Hero -->
+  <div class="guide-hero">
+    <div class="wrap">
+      <span class="guide-tag">Documentation &amp; Syntax</span>
+      <h1>Mastering AGITube Flow Automator</h1>
+      <p>A comprehensive walkthrough of batch prompt formats, reference anchors, dynamic chaining, and video timeline control.</p>
+    </div>
   </div>
-  <div class="wrap disc">Not affiliated with, endorsed by, or sponsored by Google. "Google Flow" is a trademark of Google LLC.</div>
-</footer>
+
+  <!-- Body -->
+  <div class="wrap guide-body">
+    <!-- Sidebar -->
+    <aside class="toc-sidebar">
+      <div class="toc-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+        <span>Contents</span>
+      </div>
+      <ul class="toc-list">
+        <li><a href="#basics">1. Prompt Basics</a></li>
+        <li><a href="#references">2. Reference Anchors</a></li>
+        <li><a href="#tagging">3. Tagging &amp; @tag Syntax</a></li>
+        <li><a href="#chaining">4. Procedural Chaining</a></li>
+        <li><a href="#video">5. Video Mode &amp; Frames</a></li>
+        <li><a href="#best-practices">6. Pro Tips &amp; Performance</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="guide-content">
+      <!-- 1. Basics -->
+      <section id="basics" class="guide-section">
+        <h2><span class="sec-badge">1</span> Prompt File Basics</h2>
+        <p>AGITube accepts raw text input directly through the extension textarea or via uploaded <code>.txt</code> or <code>.json</code> prompt files.</p>
+        
+        <h3>Plain Text Format</h3>
+        <p>In standard mode, simply place each prompt on a separate line. The automator processes each line sequentially from top to bottom:</p>
+        <pre><code>Cinematic drone shot of futuristic cyberpunk Tokyo at night, neon reflections, 8k
+Portrait of an ancient explorer holding a brass compass inside a dusty library
+Minimalist architectural photography of a concrete villa in Scandinavia, soft morning light</code></pre>
+
+        <div class="callout">
+          <div class="callout-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <span>Empty Lines Ignored</span>
+          </div>
+          <p>Blank lines or lines beginning with <code>//</code> or <code>#</code> are automatically treated as comments and skipped by the queue runner.</p>
+        </div>
+
+        <h3>Structured JSON Format</h3>
+        <p>For advanced workflows requiring per-prompt aspect ratio or model overrides, use standard JSON array formatting:</p>
+        <pre><code>[
+  {
+    "prompt": "Cyberpunk street vendor cooking noodles in rain",
+    "aspectRatio": "16:9",
+    "count": 2
+  },
+  {
+    "prompt": "Macro shot of mechanical watch gears rotating",
+    "aspectRatio": "1:1",
+    "count": 1
+  }
+]</code></pre>
+      </section>
+
+      <!-- 2. References -->
+      <section id="references" class="guide-section">
+        <h2><span class="sec-badge">2</span> Reference Image Anchors</h2>
+        <p>Google Flow provides specialized reference slots to condition visual outputs. AGITube allows you to upload reference assets once and propagate them across your entire batch queue:</p>
+
+        <div class="table-box">
+          <table>
+            <thead>
+              <tr>
+                <th>Reference Slot</th>
+                <th>Purpose</th>
+                <th>Best For</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Subject Reference</strong></td>
+                <td>Locks identity, face, character, or product appearance</td>
+                <td>Portraits, consistent characters, mascot branding</td>
+              </tr>
+              <tr>
+                <td><strong>Scene Reference</strong></td>
+                <td>Preserves background geometry, architectural context, and spatial layout</td>
+                <td>Interior design, recurring environments, world-building</td>
+              </tr>
+              <tr>
+                <td><strong>Style Reference</strong></td>
+                <td>Directs artistic medium, color palette, lighting, and rendering brushwork</td>
+                <td>Oil painting, anime, vintage film grain, 3D claymation</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 3. Tagging -->
+      <section id="tagging" class="guide-section">
+        <h2><span class="sec-badge">3</span> Tagging &amp; Dynamic Variables</h2>
+        <p>When running complex multi-character or episodic productions, you can assign tags to prompt inputs using the <code>#name</code> syntax and invoke them using <code>@name</code>.</p>
+
+        <h3>Naming Generated Outputs (<code>#name</code>)</h3>
+        <p>Appending <code>#tag</code> to any prompt instructs AGITube to remember the resulting generated asset in memory for subsequent steps in the same batch:</p>
+        <pre><code>Portrait of Captain Elena in a futuristic naval uniform #elena
+Close-up of a holographic navigational map #map</code></pre>
+
+        <h3>Injecting References Dynamically (<code>@tag</code>)</h3>
+        <p>Reference previously captured outputs or uploaded library assets directly inside later prompts:</p>
+        <pre><code>@elena looking intently at @map inside the starship bridge
+Cinematic profile of @elena commanding her crew during an asteroid storm</code></pre>
+      </section>
+
+      <!-- 4. Chaining -->
+      <section id="chaining" class="guide-section">
+        <h2><span class="sec-badge">4</span> Procedural Sequence Chaining</h2>
+        <p>Chaining allows you to create continuous storyboards or video sequences where each frame builds upon the previous generation:</p>
+
+        <pre><code>// Step 1: Establish the character
+Portrait of a lone astronaut exploring an alien crystal cave #astro
+
+// Step 2: Progress the action using the established character
+@astro discovering a glowing luminescent flower in the cavern walls #flower
+
+// Step 3: Render cinematic video from the result
+Animate @astro gently reaching out to touch @flower, camera slowly pushes in</code></pre>
+      </section>
+
+      <!-- 5. Video Mode -->
+      <section id="video" class="guide-section">
+        <h2><span class="sec-badge">5</span> Video Generation &amp; Frame Controls</h2>
+        <p>AGITube natively drives Google Flow video generation modes. You can schedule pure text-to-video or precise image-to-video runs.</p>
+
+        <h3>First &amp; Last Frame Controls</h3>
+        <p>For smooth morphs and transitions, specify start and end frames inside your video prompt line:</p>
+        <pre><code>@start=scene_a.png @end=scene_b.png Time-lapse transition from sunset into starry night
+@start=#astro Camera orbits 360 degrees around the astronaut standing on the cliff</code></pre>
+      </section>
+
+      <!-- 6. Best Practices -->
+      <section id="best-practices" class="guide-section">
+        <h2><span class="sec-badge">6</span> Pro Tips &amp; Performance</h2>
+        <p>To maximize speed and avoid Google Flow browser rate limits:</p>
+        <ul style="padding-left: 20px; color: var(--text-muted); display: flex; flex-direction: column; gap: 10px; font-size: 14px;">
+          <li><strong>Keep the Tab Active:</strong> Browsers throttle background tabs. Keep your Google Flow tab visible in a split window or dedicated screen for maximum processing throughput.</li>
+          <li><strong>Batch Sizing:</strong> We recommend running prompts in batches of 50 to 150 items for optimal memory management.</li>
+          <li><strong>Clean Prompts:</strong> Avoid special characters that could break URL encoding in Google Flow sessions.</li>
+          <li><strong>Download Folder Permissions:</strong> Ensure your browser has permission to save multiple files without prompting for each individual download.</li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="wrap foot-wrap">
+      <div>&copy; 2026 AGITube Flow Automator Studio. All rights reserved.</div>
+      <div>Questions? Reach our team at <a href="mailto:agitubeautomator@gmail.com" style="color:var(--primary-light);">agitubeautomator@gmail.com</a></div>
+    </div>
+  </footer>
 
 </body>
 </html>
