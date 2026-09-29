@@ -1,0 +1,61 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1c1e24"/>
+      <stop offset="100%" stop-color="#0c0d10"/>
+    </linearGradient>
+
+    <!-- Glass Rim Gradient -->
+    <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#ff2a2a" stop-opacity="0.3"/>
+    </linearGradient>
+
+    <!-- AGITube Red Gradient -->
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff4d4d"/>
+      <stop offset="60%" stop-color="#ff2a2a"/>
+      <stop offset="100%" stop-color="#c90000"/>
+    </linearGradient>
+
+    <!-- Accent White / Chrome Gradient -->
+    <linearGradient id="whiteGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#d0d5dd"/>
+    </linearGradient>
+
+    <!-- Radial Glow Filter -->
+    <radialGradient id="glow" cx="45%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff2a2a" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#ff2a2a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Base Squircle -->
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle Internal Red Ambient Glow -->
+  <circle cx="240" cy="256" r="200" fill="url(#glow)"/>
+
+  <!-- Border Rim -->
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="none" stroke="url(#rimGrad)" stroke-width="4"/>
+
+  <!-- Flow Automator / AGITube Emblem -->
+  <!-- Layer 1: Left Wing / Flow Card (Red) -->
+  <path d="M140 180 C140 160, 160 148, 178 158 L280 216 C296 225, 296 248, 280 258 L178 316 C160 326, 140 314, 140 294 Z" 
+        fill="url(#redGrad)"/>
+
+  <!-- Layer 2: Right Flow Card / Modern Play & Arrow (Clean White) -->
+  <path d="M224 204 C224 186, 244 174, 260 184 L350 236 C364 244, 364 266, 350 274 L260 326 C244 336, 224 324, 224 306 Z" 
+        fill="url(#whiteGrad)"/>
+
+  <!-- Layer 3: Dynamic Automator Bar Accent (Dual-speed Flow) -->
+  <rect x="156" y="348" width="80" height="12" rx="6" fill="#ff2a2a" opacity="0.9"/>
+  <rect x="246" y="348" width="110" height="12" rx="6" fill="#ffffff" opacity="0.9"/>
+
+  <!-- Layer 4: Modern AI Sparkle Icon (Top Right) -->
+  <path d="M380 110 L386 128 L404 134 L386 140 L380 158 L374 140 L356 134 L374 128 Z" fill="#ffffff"/>
+  <circle cx="380" cy="134" r="2" fill="#ff2a2a"/>
+</svg>
